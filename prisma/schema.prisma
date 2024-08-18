@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+model User {
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  email    String  @unique
+  name     String
+  password String
+  salt     String
+  carts    UserCart[]
+  votes    Vote[]
+}
+
+model Cart {
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  products       CartProduct[] @relation("CartProducts")
+  invitationLink String        @unique
+  users          UserCart[]
+  votes          Vote[]        @relation("CartVotes")
+}
+
+model Product {
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  price         Float
+  imageUrl  String   @default("https://example.com/default-image.png") // Default image URL
+  voteCount     Int           @default(0)
+  rating        Float
+  numRatings    Int
+  cartProducts  CartProduct[] @relation("ProductCartProducts")
+  votes         Vote[]        @relation("ProductVotes")
+}
+
+model CartProduct {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  cartId    String   @db.ObjectId
+  productId String   @db.ObjectId
+  username  String   // Store the username directly
+  
+  cart      Cart     @relation(fields: [cartId], references: [id], name: "CartProducts")
+  product   Product  @relation(fields: [productId], references: [id], name: "ProductCartProducts")
+}
+
+model Vote {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String  @db.ObjectId
+  productId String  @db.ObjectId
+  cartId    String  @db.ObjectId
+
+  user      User    @relation(fields: [userId], references: [id])
+  product   Product @relation(fields: [productId], references: [id], name: "ProductVotes")
+  cart      Cart    @relation(fields: [cartId], references: [id], name: "CartVotes")
+}
+
+model UserCart {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  cartId String @db.ObjectId
+
+  user   User   @relation(fields: [userId], references: [id])
+  cart   Cart   @relation(fields: [cartId], references: [id])
+}
+
