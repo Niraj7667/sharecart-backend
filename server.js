@@ -16,8 +16,7 @@ const prisma = new PrismaClient();
 
 app.use(cors({
   // origin: 'http://localhost:3000', // Change this to your frontend's origin
-  origin: 'https://sharecart-frontend.vercel.app',
-  origin: 'https://sharecart-frontend.netlify.app',
+  origin: ['https://sharecart-frontend.vercel.app', 'https://sharecart-frontend.netlify.app'],
   credentials: true
 }));
 app.use(helmet());
