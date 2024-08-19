@@ -85,21 +85,26 @@ export const logout = (req, res) => {
 };
 
 export const checkAuth = async (req, res) => {
-  const token = req.cookies.jwt;
+  // Extract the token from the Authorization header
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // Extract the token after 'Bearer '
 
   if (token) {
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET); // Verify the token
       const user = await prisma.user.findUnique({
         where: { id: decoded.userId },
       });
       if (user) {
-        return res.json({ user });
+        return res.json({ user }); // Return the user data if found
+      } else {
+        return res.status(404).json({ message: 'User not found' });
       }
     } catch (error) {
       console.error('Token Verification Error:', error);
-      return res.status(401).json({ message: 'Unauthorized' });
+      return res.status(403).json({ message: 'Forbidden' }); // Token invalid or expired
     }
   }
-  return res.status(401).json({ message: 'Unauthorized' });
+
+  return res.status(401).json({ message: 'Unauthorized' }); // No token provided
 };
